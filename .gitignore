@@ -1,0 +1,39 @@
+# Ignore files and directories created by Python
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment
+venv/
+.env/
+
+# Ignore cache and temporary files
+*.cache
+*.log
+*.tmp
+
+# Ignore dataset files (adjust as needed for your dataset)
+database/*.csv
+database/*.parquet
+
+# Ignore config files with sensitive information
+config.toml
+secrets.toml
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+*.swp
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Streamlit-specific files
+.streamlit/
+
+# Ignore any files with sensitive keys or tokens
+*.key
+*.pem
