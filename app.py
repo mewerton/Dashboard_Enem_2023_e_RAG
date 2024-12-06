@@ -8,10 +8,10 @@ def main():
     if data is None:
         st.stop()
 
-    # Renderizar o sidebar e capturar os filtros
+    #Renderizar o sidebar e capturar os filtros
     faixa_etaria, sexo, uf, rede, filtro_notas = render_sidebar(data)
 
-    # Renderizar o dashboard
+    #Renderizar o dashboard
     render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas)
 
 if __name__ == "__main__":
