@@ -20,9 +20,9 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
 
     # Filtrar os dados com base nos filtros do sidebar
     data_filtered = data[
-        (data["TP_FAIXA_ETARIA"].isin(faixa_etaria) if faixa_etaria else True) &
+        ((faixa_etaria == ["TODOS"]) | (data["TP_FAIXA_ETARIA"].isin(faixa_etaria))) &
         (data["TP_SEXO"].isin(sexo) if sexo else True) &
-        (data["SG_UF_ESC"].isin(uf) if uf else True) &
+        ((uf == ["TODOS"]) | (data["SG_UF_ESC"].isin(uf))) &  # Verifica se "TODOS" está selecionado no filtro de Estado (UF)
         (data["TP_ESCOLA"].isin(rede) if rede else True)
     ]
 

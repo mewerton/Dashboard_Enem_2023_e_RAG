@@ -1,5 +1,6 @@
 # Mapeamento das faixas etárias
 FAIXA_ETARIA_MAP = {
+    0: "TODOS",
     1: "Menor de 17 anos",
     2: "17 anos",
     3: "18 anos",
