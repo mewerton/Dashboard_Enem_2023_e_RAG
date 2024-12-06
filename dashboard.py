@@ -67,7 +67,7 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
     faixa_etaria_order = list(FAIXA_ETARIA_MAP.values())
 
     # Criação das Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Sexo & Idade", "Rede & Região", "Média por UF", "Faixa & Rede", "Comparação"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Sexo & Idade", "Rede & Região", "Média por UF", "Faixa & Rede", "Comparação", "Relatório"])
 
     # 1. Faixa Etária
 # 1. Faixa Etária
@@ -107,17 +107,17 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             st.plotly_chart(faixa_fig, use_container_width=True, key="faixa_fig")
 
         # Adicionar tabelas abaixo dos gráficos
-        st.subheader("Tabela: Distribuição por Sexo")
+        #st.subheader("Tabela: Distribuição por Sexo")
         tabela_sexo = data_filtered["TP_SEXO_DESC"].value_counts().reset_index()
         tabela_sexo.columns = ["Sexo", "Quantidade"]
         tabela_sexo["Porcentagem"] = (tabela_sexo["Quantidade"] / tabela_sexo["Quantidade"].sum() * 100).round(2)
-        st.dataframe(tabela_sexo, use_container_width=True)
+        #st.dataframe(tabela_sexo, use_container_width=True)
 
-        st.subheader("Tabela: Distribuição por Faixa Etária")
+        #st.subheader("Tabela: Distribuição por Faixa Etária")
         tabela_faixa_etaria = data_filtered["TP_FAIXA_ETARIA_DESC"].value_counts().reset_index()
         tabela_faixa_etaria.columns = ["Faixa Etária", "Quantidade"]
         tabela_faixa_etaria["Porcentagem"] = (tabela_faixa_etaria["Quantidade"] / tabela_faixa_etaria["Quantidade"].sum() * 100).round(2)
-        st.dataframe(tabela_faixa_etaria, use_container_width=True)
+        #st.dataframe(tabela_faixa_etaria, use_container_width=True)
 
         # Botão de análise
 
@@ -168,27 +168,27 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             st.plotly_chart(regiao_fig, use_container_width=True, key="regiao_fig")
 
         # Tabela: Distribuição por Rede de Ensino
-        st.subheader("Tabela: Distribuição por Rede de Ensino")
+        #st.subheader("Tabela: Distribuição por Rede de Ensino")
         tabela_rede = data_filtered["TP_ESCOLA_DESC"].value_counts().reset_index()
         tabela_rede.columns = ["Rede de Ensino", "Quantidade"]
         tabela_rede["Porcentagem"] = (tabela_rede["Quantidade"] / tabela_rede["Quantidade"].sum() * 100).round(2)
         # Exibe a tabela apenas se você deseja visualizar os dados:
-        st.dataframe(tabela_rede, use_container_width=True)
+        #st.dataframe(tabela_rede, use_container_width=True)
 
         # Tabela: Distribuição por Estado (UF)
-        st.subheader("Tabela: Distribuição por Estado (UF)")
+        #st.subheader("Tabela: Distribuição por Estado (UF)")
         tabela_regiao = data_filtered["Estado"].value_counts().reset_index()
         tabela_regiao.columns = ["Estado (UF)", "Quantidade"]
         tabela_regiao["Porcentagem"] = (tabela_regiao["Quantidade"] / tabela_regiao["Quantidade"].sum() * 100).round(2)
         # Exibe a tabela apenas se você deseja visualizar os dados:
-        st.dataframe(tabela_regiao, use_container_width=True)
+        #st.dataframe(tabela_regiao, use_container_width=True)
 
         # Botão de análise
         tabelas_tab2 = [
             ("Distribuição por Rede de Ensino", tabela_rede),
             ("Distribuição por Estado (UF)", tabela_regiao),
         ]
-        botao_analise("Análise de Rede de ensino e Região", tabelas_tab2, botao_texto="Análise de Rede de ensino e Região", key="botao_tab2")
+        botao_analise("Análise de Rede de ensino e Região", tabelas_tab2, botao_texto="Analisar com Inteligência Artificial", key="botao_tab2")
 
     with tab3:
         col1, col2 = st.columns(2)
@@ -246,23 +246,23 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             st.plotly_chart(media_fig, use_container_width=True, key="media_fig")
 
         # Tabela: Média Simples das Notas por Estado (UF)
-        st.subheader("Tabela: Média Simples das Notas por Estado (UF)")
+        #st.subheader("Tabela: Média Simples das Notas por Estado (UF)")
         tabela_estado = media_estado_data.copy()
         tabela_estado.columns = ["Estado (UF)", "Média Simples"]
-        st.dataframe(tabela_estado, use_container_width=True)
+        #st.dataframe(tabela_estado, use_container_width=True)
 
         # Tabela: Média Simples das Notas por Faixa Etária
-        st.subheader("Tabela: Média Simples das Notas por Faixa Etária")
+        #st.subheader("Tabela: Média Simples das Notas por Faixa Etária")
         tabela_faixa = media_data.copy()
         tabela_faixa.columns = ["Faixa Etária", "Média Simples"]
-        st.dataframe(tabela_faixa, use_container_width=True)
+        #st.dataframe(tabela_faixa, use_container_width=True)
 
         # Botão de análise
         tabelas_tab3 = [
             ("Média Simples das Notas por Estado (UF)", tabela_estado),
             ("Média Simples das Notas por Faixa Etária", tabela_faixa),
         ]
-        botao_analise("Análise das Médias", tabelas_tab3, botao_texto="Análise das Médias", key="botao_tab3")
+        botao_analise("Análise das Médias", tabelas_tab3, botao_texto="Analisar com Inteligência Artificial", key="botao_tab3")
 
     with tab4:
         # Distribuição por Rede de Ensino
@@ -372,12 +372,12 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             tabela_rede.columns = ["Rede de Ensino", "Média Simples"]
 
         # Tabela: Desempenho Geral por Faixa Etária
-        st.subheader("Tabela: Desempenho Geral por Faixa Etária")
-        st.dataframe(tabela_provas, use_container_width=True)
+        #st.subheader("Tabela: Desempenho Geral por Faixa Etária")
+        #st.dataframe(tabela_provas, use_container_width=True)
 
         # Tabela: Média Simples das Notas por Rede de Ensino
-        st.subheader("Tabela: Média Simples das Notas por Rede de Ensino")
-        st.dataframe(tabela_rede, use_container_width=True)
+        #st.subheader("Tabela: Média Simples das Notas por Rede de Ensino")
+        #st.dataframe(tabela_rede, use_container_width=True)
 
         # Botão de análise
         tabelas_tab4 = [
@@ -475,19 +475,19 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
 
 
         # Tabela: Média Geral das Provas por Sexo
-        st.subheader("Tabela: Média Geral das Provas por Sexo")
+        #st.subheader("Tabela: Média Geral das Provas por Sexo")
         tabela_media_geral = media_geral_data.copy()
         tabela_media_geral.columns = ["Sexo", "Prova", "Média"]
-        st.dataframe(tabela_media_geral, use_container_width=True)
+        #st.dataframe(tabela_media_geral, use_container_width=True)
 
         # Tabela: Diferença de Médias das Provas por Sexo
         if set(data_filtered["TP_SEXO_DESC"].unique()) >= {"Masculino", "Feminino"}:
-            st.subheader("Tabela: Diferença de Médias das Provas por Sexo")
+            #st.subheader("Tabela: Diferença de Médias das Provas por Sexo")
             tabela_diferenca = diff_data.copy()
 
             # Ajustar os nomes das colunas invertidas
             tabela_diferenca.columns = ["Prova", "Média Feminino", "Média Masculino", "Diferença"]
-            st.dataframe(tabela_diferenca, use_container_width=True)
+            #st.dataframe(tabela_diferenca, use_container_width=True)
 
         # Botão de análise
         tabelas_tab5 = [
@@ -497,3 +497,35 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             tabelas_tab5.append(("Diferença de Médias das Provas por Sexo", tabela_diferenca))
 
         botao_analise("Análise por Sexo", tabelas_tab5, botao_texto="Analisar com Inteligência Artificial", key="botao_tab5")
+
+    # TAB6: Relatório Completo
+    with tab6:
+        st.title("Relatório Completo - Análise Avançada")
+        st.write(
+            """
+            Esta aba utiliza a inteligência artificial para cruzar informações de todas as tabelas
+            das abas anteriores e gerar um relatório completo com insights detalhados.
+            """
+        )
+
+        # Coletar todas as tabelas das tabs anteriores
+        tabelas_completas = [
+            ("Distribuição por Sexo", tabela_sexo),
+            ("Distribuição por Faixa Etária", tabela_faixa_etaria),
+            ("Distribuição por Rede de Ensino", tabela_rede),
+            ("Distribuição por Estado (UF)", tabela_regiao),
+            ("Média Simples das Notas por Estado (UF)", tabela_estado),
+            ("Média Simples das Notas por Faixa Etária", tabela_faixa),
+            ("Desempenho Geral por Faixa Etária", tabela_provas),
+            ("Média Simples das Notas por Rede de Ensino", tabela_rede),
+            ("Média Geral das Provas por Sexo", tabela_media_geral),
+            ("Diferença de Médias das Provas por Sexo", tabela_diferenca),
+        ]
+
+        # Botão para gerar relatório
+        botao_analise(
+            "Relatório Completo",
+            tabelas_completas,
+            botao_texto="Gerar Relatório Completo",
+            key="botao_tab6",
+        )

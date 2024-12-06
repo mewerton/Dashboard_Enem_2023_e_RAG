@@ -62,3 +62,4 @@ def botao_analise(titulo, tabelas, botao_texto="Analisar com Inteligência Artif
     if st.button(botao_texto, key=key):
         resultado_analise = analisar_tabelas(titulo, tabelas)
         st.markdown(f"### Resultado da Análise:\n{resultado_analise}")
+
