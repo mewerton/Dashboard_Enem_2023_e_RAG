@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-from chatbot import render_chatbot
+from chatbot import botao_analise
 from constants import (FAIXA_ETARIA_MAP, SEXO_MAP, REDE_ENSINO_MAP, 
                        ACESSO_INTERNET_MAP, RENDA_FAMILIAR_MAP, 
                        ESCOLARIDADE_PAIS_MAP)
@@ -107,49 +107,23 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             st.plotly_chart(faixa_fig, use_container_width=True, key="faixa_fig")
 
         # Adicionar tabelas abaixo dos gráficos
-        st.subheader("Tabela: Distribuição por Sexo")
+        #st.subheader("Tabela: Distribuição por Sexo")
         tabela_sexo = data_filtered["TP_SEXO_DESC"].value_counts().reset_index()
         tabela_sexo.columns = ["Sexo", "Quantidade"]
         tabela_sexo["Porcentagem"] = (tabela_sexo["Quantidade"] / tabela_sexo["Quantidade"].sum() * 100).round(2)
-        st.dataframe(tabela_sexo, use_container_width=True)
+        #st.dataframe(tabela_sexo, use_container_width=True)
 
-        st.subheader("Tabela: Distribuição por Faixa Etária")
+        #st.subheader("Tabela: Distribuição por Faixa Etária")
         tabela_faixa_etaria = data_filtered["TP_FAIXA_ETARIA_DESC"].value_counts().reset_index()
         tabela_faixa_etaria.columns = ["Faixa Etária", "Quantidade"]
         tabela_faixa_etaria["Porcentagem"] = (tabela_faixa_etaria["Quantidade"] / tabela_faixa_etaria["Quantidade"].sum() * 100).round(2)
-        st.dataframe(tabela_faixa_etaria, use_container_width=True)
+        #st.dataframe(tabela_faixa_etaria, use_container_width=True)
 
+        # Botão de análise
 
+        tabelas = [("Distribuição por Sexo", tabela_sexo), ("Distribuição por Faixa Etária", tabela_faixa_etaria)]
+        botao_analise("Análise de Sexo & Idade", tabelas)
 
-        # col1, col2 = st.columns(2)
-
-        # # Gráfico 1: Distribuição por Sexo
-        # with col1:
-        #     st.plotly_chart(sexo_fig, use_container_width=True)
-
-        #     # Criar tabela consolidada para o gráfico 1
-        #     tabela_sexo = data_filtered["TP_SEXO_DESC"].value_counts().reset_index()
-        #     tabela_sexo.columns = ["Sexo", "Quantidade"]
-        #     tabela_sexo["Porcentagem"] = (tabela_sexo["Quantidade"] / tabela_sexo["Quantidade"].sum() * 100).round(2)
-
-        #     # Exibir a tabela
-        #     st.subheader("Tabela: Distribuição por Sexo")
-        #     st.dataframe(tabela_sexo)
-
-        # # Gráfico 2: Distribuição por Faixa Etária
-        # with col2:
-        #     st.plotly_chart(faixa_fig, use_container_width=True)
-
-        #     # Criar tabela consolidada para o gráfico 2
-        #     tabela_faixa_etaria = data_filtered["TP_FAIXA_ETARIA_DESC"].value_counts().reset_index()
-        #     tabela_faixa_etaria.columns = ["Faixa Etária", "Quantidade"]
-        #     tabela_faixa_etaria["Porcentagem"] = (tabela_faixa_etaria["Quantidade"] / tabela_faixa_etaria["Quantidade"].sum() * 100).round(2)
-
-        #     # Exibir a tabela
-        #     st.subheader("Tabela: Distribuição por Faixa Etária")
-        #     st.dataframe(tabela_faixa_etaria)
-
-        # render_chatbot()
     with tab2:
         col1, col2 = st.columns(2)
         with col1:

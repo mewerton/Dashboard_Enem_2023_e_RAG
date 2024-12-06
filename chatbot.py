@@ -1,77 +1,65 @@
-import streamlit as st
 import os
-import toml
+import streamlit as st
 from langchain_groq import ChatGroq
-from langchain.prompts import ChatPromptTemplate
+from configparser import ConfigParser
 
+import tomli
 
-# Função para inicializar o chatbot no corpo do dashboard
-def render_chatbot():
-    # Carregar a chave da API do arquivo config.toml
+# Função para carregar a chave API do arquivo config.toml
+def carregar_chave_api():
+    with open("config.toml", "rb") as f:
+        config = tomli.load(f)
+    return config["API_KEY"]
+
+# Função genérica para análise das tabelas
+def analisar_tabelas(titulo, tabelas):
+    """
+    Analisa uma ou mais tabelas fornecidas e gera um resumo com a LLM.
+
+    Args:
+    - titulo (str): Título ou contexto da análise, para exibir no prompt.
+    - tabelas (list of tuples): Lista de tabelas no formato [(nome_tabela, df), ...].
+
+    Returns:
+    - str: Resultado da análise gerada pela LLM.
+    """
     try:
-        config = toml.load("config.toml")
-        API_KEY = config.get("API_KEY")
-    except FileNotFoundError:
-        st.error("Arquivo config.toml não encontrado.")
-        return
+        # Carregar a chave da API
+        API_KEY = carregar_chave_api()
+        if API_KEY:
+            os.environ['GROQ_API_KEY'] = API_KEY
+        else:
+            return "Erro: API Key não encontrada no arquivo config.toml."
+
+        # Criar o modelo LLM
+        chat = ChatGroq(model='llama-3.1-70b-versatile')
+
+        # Preparar o prompt
+        prompt = f"Analise as tabelas a seguir para o contexto: {titulo}\n\n"
+        for nome_tabela, tabela in tabelas:
+            prompt += f"Tabela: {nome_tabela}\n{tabela.to_string(index=False)}\n\n"
+
+        prompt += "Você é um Assistente de Ingeligência virtual analisando os dados para um Analista de Dados que trabalha em uma instituição de ensino que tem como sua principal função oferecer cursos e programas de formação profissional para a indústria, contribuindo para a qualificação da mão de obra e o desenvolvimento tecnológico do setor. Faça insights com base nos dados apresentados e que seja do interesse desse analista."
+
+        # Enviar para a LLM como uma string
+        resposta = chat.invoke(prompt)  # Passar o prompt diretamente como string
+        return resposta.content if resposta.content.strip() else "Não foi possível gerar uma análise no momento."
     except Exception as e:
-        st.error(f"Erro ao carregar config.toml: {e}")
-        return
+        return f"Erro ao processar a análise: {str(e)}"
 
-    if API_KEY:
-        os.environ['GROQ_API_KEY'] = API_KEY
-    else:
-        st.error("API Key não encontrada no arquivo config.toml.")
+# Função para criar um botão de análise
+def botao_analise(titulo, tabelas, botao_texto="Analisar com Inteligência Artificial"):
+    """
+    Exibe um botão e, ao clicar, analisa as tabelas fornecidas.
 
-    # Variável de estado para armazenar o histórico de conversa
-    if "chat_historico" not in st.session_state:
-        st.session_state.chat_historico = []
+    Args:
+    - titulo (str): Título ou contexto da análise.
+    - tabelas (list of tuples): Lista de tabelas no formato [(nome_tabela, df), ...].
+    - botao_texto (str): Texto do botão a ser exibido.
 
-    def process_message():
-        # Processar a mensagem do chatbot
-        pergunta_usuario = st.session_state.chat_input
-
-        if pergunta_usuario:
-            try:
-                # Instanciar o modelo Groq com a Llama
-                chat = ChatGroq(model='llama-3.1-70b-versatile')
-
-                # Criar regras básicas para o chatbot
-                regras = """
-                    Você é Carly, uma assistente amigável e inteligente. Responda de forma clara e objetiva.
-                    Não cumprimente o usuário várias vezes e evite respostas muito longas.
-                """
-                historico = "\n".join(st.session_state.chat_historico)
-                template = ChatPromptTemplate.from_messages([
-                    ('system', regras),
-                    ('user', historico + f"\nUsuário: {pergunta_usuario}")
-                ])
-                chain = template | chat
-                resposta = chain.invoke({'input': pergunta_usuario}).content
-                resposta = resposta.strip() if resposta.strip() else "Desculpe, não entendi sua pergunta."
-
-                # Adicionar a interação ao histórico
-                st.session_state.chat_historico.append(f"Usuário: {pergunta_usuario}")
-                st.session_state.chat_historico.append(f"**Carly:** {resposta}")
-            except Exception as e:
-                st.session_state.chat_historico.append(f"Erro ao processar: {e}")
-
-        # Limpar o input
-        st.session_state.chat_input = ""
-
-    # Layout do chatbot no corpo do dashboard
-    st.subheader("Carly - Assistente Virtual")
-    input_col, button_col = st.columns([5, 1])
-
-    # Campo de entrada de texto
-    with input_col:
-        st.text_input("Digite sua pergunta:", key="chat_input", on_change=process_message)
-
-    # Botão de envio
-    with button_col:
-        st.button("Enviar", on_click=process_message)
-
-    # Exibir o histórico de conversa
-    st.markdown("### Histórico de Conversa")
-    for msg in st.session_state.chat_historico:
-        st.write(msg)
+    Returns:
+    - None
+    """
+    if st.button(botao_texto):
+        resultado_analise = analisar_tabelas(titulo, tabelas)
+        st.markdown(f"### Resultado da Análise:\n{resultado_analise}")
