@@ -1,4 +1,4 @@
-echo "# **Dashboard ENEM 2023**
+**Dashboard ENEM 2023**
 
 Este projeto apresenta um **dashboard interativo** para análise dos dados do ENEM 2023. Ele foi desenvolvido utilizando **Streamlit** e permite a exploração dos dados demográficos, desempenho acadêmico, e características socioeconômicas dos participantes.
 
