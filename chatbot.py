@@ -1,8 +1,6 @@
 import os
 import streamlit as st
 from langchain_groq import ChatGroq
-from configparser import ConfigParser
-
 import tomli
 
 # Função para carregar a chave API do arquivo config.toml
@@ -39,7 +37,7 @@ def analisar_tabelas(titulo, tabelas):
         for nome_tabela, tabela in tabelas:
             prompt += f"Tabela: {nome_tabela}\n{tabela.to_string(index=False)}\n\n"
 
-        prompt += "Você é um Assistente de Ingeligência virtual analisando os dados para um Analista de Dados que trabalha em uma instituição de ensino que tem como sua principal função oferecer cursos e programas de formação profissional para a indústria, contribuindo para a qualificação da mão de obra e o desenvolvimento tecnológico do setor. Faça insights com base nos dados apresentados e que seja do interesse desse analista."
+        prompt += "Você é um Assistente de Ingeligência virtual analisando os dados para uma instituição de ensino que tem como sua principal função oferecer cursos e programas de formação profissional para a indústria, contribuindo para a qualificação da mão de obra e o desenvolvimento tecnológico do setor. Faça insights com base nos dados apresentados e que seja do interesse dessa instituição."
 
         # Enviar para a LLM como uma string
         resposta = chat.invoke(prompt)  # Passar o prompt diretamente como string
