@@ -5,8 +5,7 @@ def render_sidebar(data):
     st.sidebar.header("Filtros")
     
     # Filtro por faixa etária com descrição
-    faixas_etarias = data["TP_FAIXA_ETARIA"].unique()
-    faixa_etaria_opcoes = [FAIXA_ETARIA_MAP.get(faixa, f"Não informado ({faixa})") for faixa in faixas_etarias]
+    faixa_etaria_opcoes = [FAIXA_ETARIA_MAP[faixa] for faixa in sorted(FAIXA_ETARIA_MAP.keys())]
     faixa_etaria = st.sidebar.multiselect("Faixa Etária", faixa_etaria_opcoes, default=faixa_etaria_opcoes)
 
     # Converter as descrições de volta para os números
@@ -38,5 +37,10 @@ def render_sidebar(data):
     if "Não informado" in redes_selecionadas:
         redes_numeros_selecionados.append(None)
 
+    # Filtro por notas válidas ou todos
+    st.sidebar.subheader("Notas")
+    filtro_notas_opcoes = ["Notas Válidas (0-1000)", "Todos"]
+    filtro_notas = st.sidebar.radio("Selecione:", filtro_notas_opcoes, index=1)
+
     # Retornar os filtros
-    return faixa_etaria_numeros, sexo, uf, redes_numeros_selecionados
+    return faixa_etaria_numeros, sexo, uf, redes_numeros_selecionados, filtro_notas

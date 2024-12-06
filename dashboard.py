@@ -8,7 +8,7 @@ from constants import (FAIXA_ETARIA_MAP, SEXO_MAP, REDE_ENSINO_MAP,
 # Configurar o layout em wide
 st.set_page_config(page_title="Dashboard ENEM 2023", layout="wide")
 
-def render_dashboard(data, faixa_etaria, sexo, uf, rede):
+def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
     # Substituir os valores categóricos pelas descrições
     data["TP_FAIXA_ETARIA_DESC"] = data["TP_FAIXA_ETARIA"].map(FAIXA_ETARIA_MAP)
     data["TP_SEXO_DESC"] = data["TP_SEXO"].map(SEXO_MAP)
@@ -18,13 +18,20 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede):
     data["Q001_DESC"] = data["Q001"].map(ESCOLARIDADE_PAIS_MAP)
     data["Q002_DESC"] = data["Q002"].map(ESCOLARIDADE_PAIS_MAP)
 
-    # Filtrar os dados com base nos filtros
+    # Filtrar os dados com base nos filtros do sidebar
     data_filtered = data[
         (data["TP_FAIXA_ETARIA"].isin(faixa_etaria) if faixa_etaria else True) &
         (data["TP_SEXO"].isin(sexo) if sexo else True) &
         (data["SG_UF_ESC"].isin(uf) if uf else True) &
         (data["TP_ESCOLA"].isin(rede) if rede else True)
     ]
+
+    # Aplicar o filtro de notas válidas
+    if filtro_notas == "Notas Válidas (0-1000)":
+        data_filtered = data_filtered[
+            data_filtered[["NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC", "NU_NOTA_MT", "NU_NOTA_REDACAO"]]
+            .apply(lambda row: row.between(0, 1000).all(), axis=1)
+        ]
 
     st.title("Dashboard ENEM 2023")
 
@@ -51,14 +58,32 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede):
     col5.metric("Rede Predominante", rede_predominante)
     col6.metric("Faixa Etária Comum", faixa_etaria_comum)
 
-# Linha separadora
+    # Linha separadora
     st.divider()
 
+    faixa_etaria_order = list(FAIXA_ETARIA_MAP.values())
     # 1. Faixa Etária
     col1, col2 = st.columns(2)
     with col1:
-        #st.subheader("Distribuição por Faixa Etária")
-        faixa_etaria_order = list(FAIXA_ETARIA_MAP.values())
+        #st.subheader("Distribuição por Sexo")
+        sexo_fig = px.pie(
+            data_filtered,
+            names="TP_SEXO_DESC",
+            title="Distribuição por Sexo",
+            hole=0.4,
+            color_discrete_sequence=px.colors.sequential.RdBu
+        )
+        sexo_fig.update_layout(
+            font=dict(color="white"),
+  
+        )
+        sexo_fig.update_traces(hovertemplate="<b>Sexo</b>: %{label}<br><b>Porcentagem</b>: %{percent}")
+        st.plotly_chart(sexo_fig, use_container_width=True)
+
+        
+    # 2. Média das Notas por Faixa Etária
+    with col2:
+
         faixa_fig = px.histogram(
             data_filtered,
             x="TP_FAIXA_ETARIA_DESC",
@@ -70,172 +95,193 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede):
             yaxis_title="Quantidade",
             xaxis=dict(categoryorder="array", categoryarray=faixa_etaria_order),
             font=dict(color="white"),
-
         )
-        faixa_fig.for_each_trace(lambda t: t.update(name="Quantidade"))
         faixa_fig.update_traces(hovertemplate="<b>Faixa Etária</b>: %{x}<br><b>Quantidade</b>: %{y}")
         st.plotly_chart(faixa_fig, use_container_width=True)
 
-    # 2. Média das Notas por Faixa Etária
+
+        # 3. Média Simples por Estado (UF)
+    col1, col2 = st.columns(2)
+    with col1:
+        #st.subheader("Média Simples das Notas por Estado (UF)")
+
+        # Calcular a média simples das notas por estado (UF)
+        data_filtered["MEDIA_SIMPLES"] = data_filtered[["NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC", "NU_NOTA_MT", "NU_NOTA_REDACAO"]].mean(axis=1)
+        media_estado_data = data_filtered.groupby("SG_UF_ESC")["MEDIA_SIMPLES"].mean().reset_index()
+
+        # Criar o gráfico de barras
+        media_estado_fig = px.bar(
+            media_estado_data,
+            x="SG_UF_ESC",
+            y="MEDIA_SIMPLES",
+            title="Média Simples das Notas por Estado (UF)",
+            text="MEDIA_SIMPLES",  # Exibir a média no rótulo das barras
+            color_discrete_sequence=["#FFD700"]
+        )
+        media_estado_fig.update_layout(
+            xaxis_title="Estado (UF)",
+            yaxis_title="Média Simples das Notas",
+            font=dict(color="white"),
+            #title=dict(x=0.5),  # Centraliza o título
+        )
+        media_estado_fig.update_traces(
+            texttemplate="%{text:.2f}",  # Formata o texto com duas casas decimais
+            textposition="outside",  # Posiciona o rótulo fora das barras
+            hovertemplate="<b>Estado (UF)</b>: %{x}<br><b>Média Simples</b>: %{y:.2f}"
+        )
+        st.plotly_chart(media_estado_fig, use_container_width=True)
+
+    # 4. Distribuição por Sexo
     with col2:
         # Calcular a média simples das notas por faixa etária
         data_filtered["MEDIA_SIMPLES"] = data_filtered[["NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC", "NU_NOTA_MT", "NU_NOTA_REDACAO"]].mean(axis=1)
         media_data = data_filtered.groupby("TP_FAIXA_ETARIA_DESC")["MEDIA_SIMPLES"].mean().reset_index()
 
-        # Criar o gráfico de barras
+        # Criar o gráfico de barras com gradação de cores
         media_fig = px.bar(
             media_data,
             x="TP_FAIXA_ETARIA_DESC",
             y="MEDIA_SIMPLES",
             title="Média Simples das Notas por Faixa Etária",
-            color_discrete_sequence=["#87CEEB"]  # Cor para as barras
+            color="MEDIA_SIMPLES",  # Basear a cor na média simples
+            color_continuous_scale="Blues",  # Paleta de cores
         )
         media_fig.update_layout(
             xaxis_title="Faixa Etária",
             yaxis_title="Média Simples das Notas",
-            xaxis=dict(categoryorder="array", categoryarray=media_data["TP_FAIXA_ETARIA_DESC"]),
+            xaxis=dict(categoryorder="array", categoryarray=faixa_etaria_order),
             font=dict(color="white"),
-            title=dict(x=0.5),  # Centraliza o título
+            #title=dict(x=0.5),  # Centraliza o título
+            coloraxis_colorbar=dict(
+                title="Média",  # Legenda da escala de cores
+                title_side="right"
+            ),
         )
-        media_fig.update_traces(hovertemplate="<b>Faixa Etária</b>: %{x}<br><b>Média Simples</b>: %{y:.2f}")
+        media_fig.update_traces(
+            hovertemplate="<b>Faixa Etária</b>: %{x}<br><b>Média Simples</b>: %{y:.2f}"
+        )
         st.plotly_chart(media_fig, use_container_width=True)
+        #st.metric("Total Filtrado (Distribuição por Sexo)", len(data_filtered))
+        #faixa_etaria_order = list(FAIXA_ETARIA_MAP.values())
 
-    # # 3. Média das Notas por Região
-    # col1, col2 = st.columns(2)
-    # with col1:
-    #     st.subheader("Média das Notas por Estado (UF)")
-    #     regiao_data = data_filtered.groupby("SG_UF_ESC")[["NU_NOTA_MT", "NU_NOTA_LC"]].mean().reset_index()
-    #     regiao_data = regiao_data.melt(id_vars=["SG_UF_ESC"], var_name="Prova", value_name="Média")
-    #     regiao_data["Prova"] = regiao_data["Prova"].replace({
-    #         "NU_NOTA_MT": "Matemática",
-    #         "NU_NOTA_LC": "Linguagens"
-    #     })
-    #     regiao_fig = px.bar(
-    #         regiao_data,
-    #         x="SG_UF_ESC",
-    #         y="Média",
-    #         color="Prova",
-    #         barmode="group",
-    #         title="Média das Notas por Estado (UF)",
-    #         color_discrete_sequence=["#FFD700", "#FF6347"]
-    #     )
-    #     regiao_fig.update_layout(
-    #         xaxis_title="Estado (UF)",
-    #         yaxis_title="Média",
-    #         font=dict(color="white"),
 
-    #     )
-    #     regiao_fig.update_traces(hovertemplate="<b>Estado (UF)</b>: %{x}<br><b>Média</b>: %{y}<br><b>Prova</b>: %{legendgroup}")
-    #     st.plotly_chart(regiao_fig, use_container_width=True)
+    # 5. Distribuição por Rede de Ensino
+    col1, col2 = st.columns(2)
+    with col1:
+        #st.subheader("Distribuição por Rede de Ensino")
+        rede_fig = px.pie(
+            data_filtered,
+            names="TP_ESCOLA_DESC",
+            title="Distribuição por Rede de Ensino",
+            hole=0.4,
+            color_discrete_sequence=px.colors.sequential.Plasma_r  # Paleta vibrante
+        )
+        rede_fig.update_layout(
+            font=dict(color="white"),
+        )
+        rede_fig.update_traces(
+            textinfo="percent+label",
+            hovertemplate="<b>Rede de Ensino</b>: %{label}<br><b>Porcentagem</b>: %{percent}"
+        )
+        st.plotly_chart(rede_fig, use_container_width=True)
 
-    # # 4. Distribuição por Sexo
+    with col2:
+        #st.subheader("Média Simples das Notas por Rede de Ensino")
+        
+        # Calcular a média simples das notas para cada rede de ensino
+        data_filtered["MEDIA_SIMPLES"] = data_filtered[["NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC", "NU_NOTA_MT", "NU_NOTA_REDACAO"]].mean(axis=1)
+        media_rede_data = data_filtered.groupby("TP_ESCOLA_DESC")["MEDIA_SIMPLES"].mean().reset_index()
+
+        # Ordenar os valores para uma apresentação mais clara
+        media_rede_data = media_rede_data.sort_values(by="MEDIA_SIMPLES", ascending=True)  # Ordem crescente para barras horizontais
+
+        # Criar o gráfico de barras horizontais
+        media_rede_fig = px.bar(
+            media_rede_data,
+            y="TP_ESCOLA_DESC",  # Rede de ensino no eixo Y
+            x="MEDIA_SIMPLES",  # Média simples no eixo X
+            title="Média Simples das Notas por Rede de Ensino",
+            text="MEDIA_SIMPLES",  # Mostrar as médias como texto nas barras
+            labels={"TP_ESCOLA_DESC": "Rede de Ensino", "MEDIA_SIMPLES": "Média Simples"},
+            color="TP_ESCOLA_DESC",  # Diferenciar redes pelo nome
+            color_discrete_sequence=px.colors.sequential.Teal  # Paleta de cores
+        )
+
+        # Ajustar o layout do gráfico
+        media_rede_fig.update_layout(
+            yaxis_title="Rede de Ensino",
+            xaxis_title="Média Simples das Notas",
+            font=dict(color="white"),
+            title=dict(x=0.5),  # Centralizar o título
+        )
+
+        # Mostrar os valores nas barras
+        media_rede_fig.update_traces(
+            texttemplate="%{text:.2f}", 
+            textposition="outside", 
+            hovertemplate="<b>Rede de Ensino</b>: %{y}<br><b>Média Simples</b>: %{x:.2f}"
+        )
+
+        # Exibir o gráfico
+        st.plotly_chart(media_rede_fig, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+    # 8. Comparação Geral por Sexo
+    with col1:
+        # Adicionar descrições das provas
+        prova_map = {
+            "NU_NOTA_CN": "Ciências da Natureza",
+            "NU_NOTA_CH": "Ciências Humanas",
+            "NU_NOTA_LC": "Linguagens e Códigos",
+            "NU_NOTA_MT": "Matemática",
+            "NU_NOTA_REDACAO": "Redação"
+        }
+
+        # Agrupar os dados e calcular a média
+        media_geral_data = (
+            data_filtered.groupby("TP_SEXO_DESC")[[
+                "NU_NOTA_MT", "NU_NOTA_LC", "NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_REDACAO"
+            ]]
+            .mean()
+            .reset_index()
+            .melt(id_vars=["TP_SEXO_DESC"], var_name="Prova", value_name="Média")
+        )
+
+        # Substituir os nomes das provas pelas descrições
+        media_geral_data["Prova"] = media_geral_data["Prova"].map(prova_map)
+
+        # Criar o gráfico
+        media_geral_fig = px.bar(
+            media_geral_data,
+            x="TP_SEXO_DESC",
+            y="Média",
+            color="Prova",
+            barmode="group",
+            title="Média Geral das Provas por Sexo",
+            color_discrete_sequence=px.colors.sequential.Viridis
+        )
+        media_geral_fig.update_layout(
+            font=dict(color="white"),
+            xaxis_title="Sexo",
+            yaxis_title="Média de Notas",
+            legend_title="Provas",
+        )
+        media_geral_fig.update_traces(
+            hovertemplate="<b>Média</b>: %{y:.2f}"  # Apenas exibe a média no hover
+        )
+        # Adicionar a coluna Prova como customdata para o hovertemplate
+        media_geral_fig.for_each_trace(lambda t: t.update(customdata=media_geral_data.loc[
+            media_geral_data["Prova"] == t.name, ["Prova"]
+        ].to_numpy()))
+
+        st.plotly_chart(media_geral_fig, use_container_width=True)
+
+
+
+
+    # 9. Desempenho por Sexo e Região em Provas
+    #col1, col2 = st.columns(2)
     # with col2:
-    #     st.subheader("Distribuição por Sexo")
-    #     sexo_fig = px.pie(
-    #         data_filtered,
-    #         names="TP_SEXO_DESC",
-    #         title="Distribuição por Sexo",
-    #         hole=0.4,
-    #         color_discrete_sequence=px.colors.sequential.RdBu
-    #     )
-    #     sexo_fig.update_layout(
-    #         font=dict(color="white"),
-  
-    #     )
-    #     sexo_fig.update_traces(hovertemplate="<b>Sexo</b>: %{label}<br><b>Porcentagem</b>: %{percent}")
-    #     st.plotly_chart(sexo_fig, use_container_width=True)
-
-    # # 5. Distribuição por Rede de Ensino
-    # col1, col2 = st.columns(2)
-    # with col1:
-    #     st.subheader("Distribuição por Rede de Ensino")
-    #     rede_fig = px.pie(
-    #         data_filtered,
-    #         names="TP_ESCOLA_DESC",
-    #         title="Distribuição por Rede de Ensino",
-    #         hole=0.4,
-    #         color_discrete_sequence=px.colors.sequential.Plasma_r  # Paleta vibrante
-    #     )
-    #     rede_fig.update_layout(
-    #         font=dict(color="white"),
-    #     )
-    #     rede_fig.update_traces(
-    #         textinfo="percent+label",
-    #         hovertemplate="<b>Rede de Ensino</b>: %{label}<br><b>Porcentagem</b>: %{percent}"
-    #     )
-    #     st.plotly_chart(rede_fig, use_container_width=True)
-
-    # # 6. Desempenho em Linguagens por Sexo
-    # with col2:
-    #     st.subheader("Desempenho em Linguagens por Sexo")
-    #     linguagens_data = data_filtered.groupby("TP_SEXO_DESC")["NU_NOTA_LC"].mean().reset_index()
-    #     linguagens_fig = px.bar(
-    #         linguagens_data,
-    #         x="TP_SEXO_DESC",
-    #         y="NU_NOTA_LC",
-    #         title="Média de Linguagens por Sexo",
-    #         color_discrete_sequence=["#FF8C00"]
-    #     )
-    #     linguagens_fig.update_layout(
-    #         xaxis_title="Sexo",
-    #         yaxis_title="Média de Linguagens",
-    #         font=dict(color="white"),
-    #     )
-    #     linguagens_fig.update_traces(hovertemplate="<b>Sexo</b>: %{x}<br><b>Média</b>: %{y}")
-    #     st.plotly_chart(linguagens_fig, use_container_width=True)
-
-
-    # # 7. Desempenho em Matemática por Região
-    # col1, col2 = st.columns(2)
-    # with col1:
-    #     st.subheader("Desempenho em Matemática por Região")
-    #     matematica_regiao_fig = px.bar(
-    #         data_filtered.groupby("SG_UF_ESC")["NU_NOTA_MT"].mean().reset_index(),
-    #         x="SG_UF_ESC",
-    #         y="NU_NOTA_MT",
-    #         title="Média de Matemática por Estado (UF)",
-    #         color="SG_UF_ESC",
-    #         color_discrete_sequence=px.colors.sequential.Turbo
-    #     )
-    #     matematica_regiao_fig.update_layout(
-    #         font=dict(color="white"),
-    #         xaxis_title="Estado (UF)",
-    #         yaxis_title="Média de Notas",
-    #     )
-    #     matematica_regiao_fig.update_traces(
-    #         hovertemplate="<b>Estado (UF)</b>: %{x}<br><b>Média</b>: %{y:.2f}"
-    #     )
-    #     st.plotly_chart(matematica_regiao_fig, use_container_width=True)
-
-    # # 8. Comparação Geral por Sexo
-    # with col2:
-    #     st.subheader("Comparação Geral das Provas por Sexo")
-    #     media_geral_fig = px.bar(
-    #         data_filtered.groupby("TP_SEXO_DESC")[
-    #             ["NU_NOTA_MT", "NU_NOTA_LC", "NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_REDACAO"]
-    #         ].mean().reset_index().melt(id_vars=["TP_SEXO_DESC"]),
-    #         x="TP_SEXO_DESC",
-    #         y="value",
-    #         color="variable",
-    #         barmode="group",
-    #         title="Média Geral das Provas por Sexo",
-    #         color_discrete_sequence=px.colors.sequential.Viridis
-    #     )
-    #     media_geral_fig.update_layout(
-    #         font=dict(color="white"),
-    #         xaxis_title="Sexo",
-    #         yaxis_title="Média de Notas",
-    #         legend_title="Provas",
-    #     )
-    #     media_geral_fig.for_each_trace(lambda t: t.update(name=t.name.replace("NU_NOTA_", "")))
-    #     media_geral_fig.update_traces(
-    #         hovertemplate="<b>Sexo</b>: %{x}<br><b>Média</b>: %{y:.2f}"
-    #     )
-    #     st.plotly_chart(media_geral_fig, use_container_width=True)
-
-    # # 9. Desempenho por Sexo e Região em Provas
-    # col1, col2 = st.columns(2)
-    # with col1:
     #     st.subheader("Desempenho por Sexo e Região")
     #     desempenho_fig = px.bar(
     #         data_filtered.groupby(["TP_SEXO_DESC", "SG_UF_ESC"])[

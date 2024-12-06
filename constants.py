@@ -85,3 +85,11 @@ CONCLUSAO_MAP = {
     3: "Estou cursando, mas não o último ano",
     4: "Não conclui e não estou cursando"
 }
+
+PROVA_MAP = {
+    "NU_NOTA_CN": "Ciências da Natureza",
+    "NU_NOTA_CH": "Ciências Humanas",
+    "NU_NOTA_LC": "Linguagens e Códigos",
+    "NU_NOTA_MT": "Matemática",
+    "NU_NOTA_REDACAO": "Redação"
+}

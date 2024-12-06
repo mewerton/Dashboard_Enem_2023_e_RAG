@@ -4,16 +4,15 @@ from sidebar import render_sidebar
 from dashboard import render_dashboard
 
 def main():
-    # Carregar o dataset
     data = load_dataset()
     if data is None:
         st.stop()
 
-    # Renderizar o sidebar
-    faixa_etaria, sexo, uf, rede = render_sidebar(data)
+    # Renderizar o sidebar e capturar os filtros
+    faixa_etaria, sexo, uf, rede, filtro_notas = render_sidebar(data)
 
     # Renderizar o dashboard
-    render_dashboard(data, faixa_etaria, sexo, uf, rede)
+    render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas)
 
 if __name__ == "__main__":
     main()
