@@ -48,7 +48,7 @@ def analisar_tabelas(titulo, tabelas):
         return f"Erro ao processar a análise: {str(e)}"
 
 # Função para criar um botão de análise
-def botao_analise(titulo, tabelas, botao_texto="Analisar com Inteligência Artificial"):
+def botao_analise(titulo, tabelas, botao_texto="Analisar com Inteligência Artificial", key=None):
     """
     Exibe um botão e, ao clicar, analisa as tabelas fornecidas.
 
@@ -56,10 +56,11 @@ def botao_analise(titulo, tabelas, botao_texto="Analisar com Inteligência Artif
     - titulo (str): Título ou contexto da análise.
     - tabelas (list of tuples): Lista de tabelas no formato [(nome_tabela, df), ...].
     - botao_texto (str): Texto do botão a ser exibido.
+    - key (str): Chave única para o botão.
 
     Returns:
     - None
     """
-    if st.button(botao_texto):
+    if st.button(botao_texto, key=key):
         resultado_analise = analisar_tabelas(titulo, tabelas)
         st.markdown(f"### Resultado da Análise:\n{resultado_analise}")

@@ -124,10 +124,54 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
         tabelas = [("Distribuição por Sexo", tabela_sexo), ("Distribuição por Faixa Etária", tabela_faixa_etaria)]
         botao_analise("Análise de Sexo & Idade", tabelas)
 
+    # with tab2:
+    #     col1, col2 = st.columns(2)
+    #     with col1:
+    #         #st.subheader("Distribuição por Rede de Ensino")
+    #         rede_fig = px.pie(
+    #             data_filtered,
+    #             names="TP_ESCOLA_DESC",
+    #             title="Distribuição por Rede de Ensino",
+    #             hole=0.4,
+    #             color_discrete_sequence=px.colors.sequential.Plasma_r  # Paleta vibrante
+    #         )
+    #         rede_fig.update_layout(
+    #             font=dict(color="white"),
+    #         )
+    #         rede_fig.update_traces(
+    #             textinfo="percent+label",
+    #             hovertemplate="<b>Rede de Ensino</b>: %{label}<br><b>Porcentagem</b>: %{percent}"
+    #         )
+    #         st.plotly_chart(rede_fig, use_container_width=True)
+
+    #     with col2:
+    #     #st.subheader("Distribuição por Região")
+
+    #         # Adicionar uma coluna "Estado" com "Não informado" para valores nulos
+    #         data_filtered["Estado"] = data_filtered["SG_UF_ESC"].fillna("Não informado")
+
+    #         # Criar o gráfico
+    #         regiao_fig = px.histogram(
+    #             data_filtered,
+    #             x="Estado",
+    #             title="Distribuição por Estado (UF)",
+    #             color_discrete_sequence=["#90ee90"]
+    #         )
+    #         regiao_fig.update_layout(
+    #             font=dict(color="white"),
+    #             xaxis_title="Estado (UF)",
+    #             yaxis_title="Quantidade",
+    #         )
+    #         regiao_fig.update_traces(
+    #             hovertemplate="<b>Estado (UF)</b>: %{x}<br><b>Quantidade</b>: %{y}"
+    #         )
+    #         st.plotly_chart(regiao_fig, use_container_width=True)
+
     with tab2:
         col1, col2 = st.columns(2)
+
+        # Gráfico 1: Distribuição por Rede de Ensino
         with col1:
-            #st.subheader("Distribuição por Rede de Ensino")
             rede_fig = px.pie(
                 data_filtered,
                 names="TP_ESCOLA_DESC",
@@ -142,11 +186,10 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
                 textinfo="percent+label",
                 hovertemplate="<b>Rede de Ensino</b>: %{label}<br><b>Porcentagem</b>: %{percent}"
             )
-            st.plotly_chart(rede_fig, use_container_width=True)
+            st.plotly_chart(rede_fig, use_container_width=True, key="rede_fig")
 
+        # Gráfico 2: Distribuição por Região
         with col2:
-        #st.subheader("Distribuição por Região")
-
             # Adicionar uma coluna "Estado" com "Não informado" para valores nulos
             data_filtered["Estado"] = data_filtered["SG_UF_ESC"].fillna("Não informado")
 
@@ -165,7 +208,32 @@ def render_dashboard(data, faixa_etaria, sexo, uf, rede, filtro_notas):
             regiao_fig.update_traces(
                 hovertemplate="<b>Estado (UF)</b>: %{x}<br><b>Quantidade</b>: %{y}"
             )
-            st.plotly_chart(regiao_fig, use_container_width=True)
+            st.plotly_chart(regiao_fig, use_container_width=True, key="regiao_fig")
+
+        # Tabela: Distribuição por Rede de Ensino
+        st.subheader("Tabela: Distribuição por Rede de Ensino")
+        tabela_rede = data_filtered["TP_ESCOLA_DESC"].value_counts().reset_index()
+        tabela_rede.columns = ["Rede de Ensino", "Quantidade"]
+        tabela_rede["Porcentagem"] = (tabela_rede["Quantidade"] / tabela_rede["Quantidade"].sum() * 100).round(2)
+        # Exibe a tabela apenas se você deseja visualizar os dados:
+        st.dataframe(tabela_rede, use_container_width=True)
+
+        # Tabela: Distribuição por Estado (UF)
+        st.subheader("Tabela: Distribuição por Estado (UF)")
+        tabela_regiao = data_filtered["Estado"].value_counts().reset_index()
+        tabela_regiao.columns = ["Estado (UF)", "Quantidade"]
+        tabela_regiao["Porcentagem"] = (tabela_regiao["Quantidade"] / tabela_regiao["Quantidade"].sum() * 100).round(2)
+        # Exibe a tabela apenas se você deseja visualizar os dados:
+        st.dataframe(tabela_regiao, use_container_width=True)
+
+        # Botão de análise
+        tabelas_tab2 = [
+            ("Distribuição por Rede de Ensino", tabela_rede),
+            ("Distribuição por Estado (UF)", tabela_regiao),
+        ]
+        botao_analise("Análise de Rede & Região", tabelas_tab2, botao_texto="Análise de Rede & Região", key="botao_tab2")
+
+
 
     with tab3:
         col1, col2 = st.columns(2)
