@@ -10,6 +10,11 @@ Este projeto apresenta um **dashboard interativo** para análise dos dados do EN
 
 ---
 
+## **Vídeo exibindo o projeto em funcionamento**
+- https://www.linkedin.com/feed/update/urn:li:activity:7271859924765196289/
+
+---
+
 ## **Pré-requisitos**
 Antes de iniciar, verifique se você possui as ferramentas abaixo instaladas:
 - **Python 3.8+**
